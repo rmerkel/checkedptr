@@ -8,11 +8,11 @@
 
 # Description
 
-Run-time range checked pointer for a T. When bound to an array of T, a
-CheckedPtr<T> maintains the start and length of the array, and the current
-position in the array. Any attempt to dereference a CheckedPtr<T> results in a
-range-check. If the current position is out of range, and range_error
-exception is thrown.
+Run-time range checked pointer for a T. Once bound to an array, a 
+CheckedPtr<T> maintians a position with in the array, and the upper and lower 
+bounds of the array. Each attempt to dereference a CheckedPtr<T> results in a
+range-check of the current position, throwing a range_error exception if the 
+check fails.
 
 From The C++ Programming Language, 
 - 2nd Edition; 7.10, 7.14[19 and 9.9[2]

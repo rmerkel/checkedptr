@@ -20,54 +20,55 @@
 /********************************************************************************************//**
  * Range Checked Pointer
  *
- * Runtime range checked pointer for an array of T's. Once bound to an array, CheckedPtr<T>
- * maintains a current position within the array. Any attempt to deference the CheckedPtr<T>
- * whos current position is out of range results in a std::range_error exception.
+ * Run-time range checked pointer for a T. Once bound to an array, a CheckedPtr<T> maintians a
+ * position with in the array, and the upper and lower bounds of the array. Each attempt to
+ * dereference a CheckedPtr<T> results in a range-check of the current position, throwing a
+ * range_error exception if the check fails.
  *
- * @bug Implementation uses a number of elements in the array, requiring calculating the index of
- * 		the current position with in the array. A more efficient design might use a set of begin,
- *		end pointers.
+ * @note	Attempts to derefernce a unbound CheckedPtr<T> will result in a throw range_error.
+ *
  * @bug	Lacks a unsigned index operator.
+ * @bug Default copy construction and assignement should work fine.
  ************************************************************************************************/
 template<class T> class CheckedPtr {
-			T*		p;							///< Current position in a[]
-	const	T*		a;							///< Array ptr is bound to
-			size_t	sz;							///< # of elements in a[]
+	T*	_pos;									///< Current position in a[]
+	T*	_begin;									///< Beginging of array bound to
+	T*	_end;									///< End (one pasted last element), of the array
 
-	void range_check() const					{	range_check(p - a);	}
-	void range_check(ptrdiff_t i) const;
+	void range_check(const T* pos) const;
 
 public:
 	CheckedPtr();
-	CheckedPtr(T* pos);
-	CheckedPtr(T* pos, const T* array, size_t n);
+	CheckedPtr(T* position);
+	CheckedPtr(T* position, T* array, size_t n);
+	CheckedPtr(T* position, T* begin, T* end);
 	CheckedPtr(const CheckedPtr<T>& rhs);
 
 	CheckedPtr<T>&	operator=(const CheckedPtr<T>& rhs);
 
-	CheckedPtr<T>&	operator++();				// ++p
-	CheckedPtr<T>	operator++(int);			// p++
+	CheckedPtr<T>&	operator++();				///< ++p
+	CheckedPtr<T>	operator++(int);			///< p++
 
-	CheckedPtr<T>&	operator+=(int n);			// p += n
-	CheckedPtr<T>	operator+(int n) const;		// p + n
+	CheckedPtr<T>&	operator+=(int n);			///< p += n
+	CheckedPtr<T>	operator+(int n) const;		///< p + n
 
-	CheckedPtr<T>&	operator--();				// --p
-	CheckedPtr<T>	operator--(int);			// p--
+	CheckedPtr<T>&	operator--();				///< --p
+	CheckedPtr<T>	operator--(int);			///< p--
 
-	CheckedPtr<T>&	operator-=(int n);			// p -= n
-	CheckedPtr<T>	operator-(int n) const;		// p - n
+	CheckedPtr<T>&	operator-=(int n);			///< p -= n
+	CheckedPtr<T>	operator-(int n) const;		///< p - n
 
 	bool 			operator==(const CheckedPtr<T>& rhs) const;
 	bool			operator==(const T* rhs) const;
 
-	T&				operator*();				// *p
-	const T&		operator*() const;			// *p
+	T&				operator*();				///< *p
+	const T&		operator*() const;			///< *p
 
-	T*				operator->();				// p->member
-	const T&		operator->() const;			// p->member
+	T*				operator->();				///< p->member
+	const T&		operator->() const;			///< p->member
 
-	T&				operator[](int i);			// p[i]
-	const T&		operator[](int i) const;	// p[i]
+	T&				operator[](int i);			///< p[i]
+	const T&		operator[](int i) const;	///< p[i]
 
 	friend ptrdiff_t operator-(	const CheckedPtr<T>&	lhs,
 								const CheckedPtr<T>&	rhs);
@@ -77,12 +78,17 @@ public:
  * privates
  ************************************************************************************************/
 
-/// Throw a range_error if i is out of range of a[0..sz)
+/// Throw a range_error if pos is out of range
 template<class T>
-void CheckedPtr<T>::range_check(ptrdiff_t i) const {
-	if (i < 0 || static_cast<size_t>(i) >= sz) {
-		std::ostringstream oss;
-		oss << "CheckedPtr<T>::range_check(" << i << ") failed" << std::ends;
+void CheckedPtr<T>::range_check(const T* pos) const {
+	std::ostringstream oss;
+
+	if (pos == 0 || _begin == 0 || _end == 0) {
+		oss << "CheckedPtr<T>::range_check(" << pos << ") failed: unbound" << std::ends;
+		throw std::range_error(oss.str());
+
+	} else if (pos < _begin || pos >= _end) {
+		oss << "CheckedPtr<T>::range_check(" << pos << ") failed: out of bounds" << std::ends;
 		throw std::range_error(oss.str());
 	}
 }
@@ -93,119 +99,122 @@ void CheckedPtr<T>::range_check(ptrdiff_t i) const {
 
 /// Construct an unbound CheckedPtr<T>
 template<class T>
-CheckedPtr<T>::CheckedPtr() : p{0},	a{0}, sz{0} {}
+CheckedPtr<T>::CheckedPtr() : _pos{0},	_begin{0}, _end{0} {}
 
 /// Construct anCheckedPtr<T> bound to an array with a single element
 template<class T>
-CheckedPtr<T>::CheckedPtr(T* pos) : p{pos}, a{pos}, sz{1} {}
+CheckedPtr<T>::CheckedPtr(T* position) : _pos{position}, _begin{position}, _end{position + 1} {}
 
 /// Construct an CheckedPtr<T> bound to an attary of n elements, with initial position pos
 template<class T>
-CheckedPtr<T>::CheckedPtr(T* pos, const T* array, size_t n) : p{pos}, a{array}, sz{n} {}
+CheckedPtr<T>::CheckedPtr(T* position, T* array, size_t n) : _pos{position}, _begin{array}, _end{array+n} {}
+
+template<class T>
+CheckedPtr<T>::CheckedPtr(T* position, T* begin, T* end) : _pos{position}, _begin{begin}, _end{end} {}
 
 /// Construct an CheckedPtr<T> bound to the same array as rhs
 template<class T>
-CheckedPtr<T>::CheckedPtr(const CheckedPtr<T>& rhs) : p{rhs.p}, a{rhs.a}, sz{rhs.sz} {}
+CheckedPtr<T>::CheckedPtr(const CheckedPtr<T>& rhs) : _pos{rhs._pos}, _begin{rhs._begin}, _end{rhs._end} {}
 
 template<class T>
 CheckedPtr<T>& CheckedPtr<T>::operator=(const CheckedPtr<T>& rhs) {
-	p = rhs.p;
-	a = rhs.a;
-	sz = rhs.sz;
+	_pos = rhs._pos;
+	_begin = rhs._begin;
+	_end = rhs._end;
 
 	return *this;
 }
 
 template<class T>
 CheckedPtr<T>&	CheckedPtr<T>::operator++() {
-	++p;
+	++_pos;
 	return *this;
 }
 
 template<class T>
 CheckedPtr<T>	CheckedPtr<T>::operator++(int) {
-	p++;
-	return CheckedPtr<T>(p - 1, a, sz);
+	_pos++;
+	return CheckedPtr<T>(_pos);
 }
 
 template<class T>
 CheckedPtr<T>&	CheckedPtr<T>::operator+=(int n) {
-	p += n;
+	_pos += n;
 	return *this;
 }
 
 template<class T>
 CheckedPtr<T>	CheckedPtr<T>::operator+(int n) const {
-	return CheckedPtr<T>(p + n, a, sz);
+	return CheckedPtr<T>(_pos + n, _pos, _end);
 }
 
 template<class T>
 CheckedPtr<T>&	CheckedPtr<T>::operator--() {
-	--p;
+	--_pos;
 	return *this;
 }
 
 template<class T>
 CheckedPtr<T>	CheckedPtr<T>::operator--(int) {
-	p--;
-	return CheckedPtr<T>(p + 1, a, sz);
+	_pos--;
+	return CheckedPtr<T>(_pos + 1, _begin, _end);
 }
 
 template<class T>
 CheckedPtr<T>&	CheckedPtr<T>::operator-=(int n) {
-	p -= n;
+	_pos -= n;
 	return *this;
 }
 
 template<class T>
 CheckedPtr<T>	CheckedPtr<T>::operator-(int n) const {
-	return CheckedPtr<T>(p - n, a, sz);
+	return CheckedPtr<T>(_pos - n, _begin, _end);
 }
 
 template<class T>
 bool CheckedPtr<T>::operator==(const CheckedPtr<T>& rhs) const {
-	return p == rhs.p;
+	return _pos == rhs._pos;
 }
 
 template<class T>
 bool CheckedPtr<T>::operator==(const T* rhs) const {
-	return p == rhs;
+	return _pos == rhs;
 }
 
 template<class T>
 T& CheckedPtr<T>::operator*() {
-	range_check();
-	return *p;
+	range_check(_pos);
+	return *_pos;
 }
 
 template<class T>
 const T& CheckedPtr<T>::operator*() const {
-	range_check();
-	return *p;
+	range_check(_pos);
+	return *_pos;
 }
 
 template<class T>
 T* CheckedPtr<T>::operator->() {
-	range_check();
-	return p;
+	range_check(_pos);
+	return _pos;
 }
 
 template<class T>
 const T& CheckedPtr<T>::operator->() const {
-	range_check();
-	return *p;
+	range_check(_pos);
+	return *_pos;
 }
 
 template<class T>
 T& CheckedPtr<T>::operator[](int i) {
-	range_check(&p[i] - a);
-	return p[i];
+	range_check(&_begin[i]);
+	return _begin[i];
 }
 
 template<class T>
 const T& CheckedPtr<T>::operator[](int i) const {
-	range_check(&p[i] - a);
-	return *p;
+	range_check(&_begin[i]);
+	return _begin[i];
 }
 
 /************************************************************************************************
@@ -214,7 +223,7 @@ const T& CheckedPtr<T>::operator[](int i) const {
 
 template<class T>
 ptrdiff_t operator-(const CheckedPtr<T>& lhs, const CheckedPtr<T>& rhs) {
-	return lhs.p - rhs.p;
+	return lhs._pos - rhs._pos;
 }
 
 #endif
