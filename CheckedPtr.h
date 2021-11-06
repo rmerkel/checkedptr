@@ -32,15 +32,15 @@
 template<class T> class CheckedPtr {
 			T*		p;							///< Current position in a[]
 	const	T*		a;							///< Array ptr is bound to
-			int		sz;							///< # of elements in a[]
+			size_t	sz;							///< # of elements in a[]
 
 	void range_check() const					{	range_check(p - a);	}
-	void range_check(int i) const;
+	void range_check(ptrdiff_t i) const;
 
 public:
 	CheckedPtr();
 	CheckedPtr(T* pos);
-	CheckedPtr(T* pos, const T* array, int n);
+	CheckedPtr(T* pos, const T* array, size_t n);
 	CheckedPtr(const CheckedPtr<T>& rhs);
 
 	CheckedPtr<T>&	operator=(const CheckedPtr<T>& rhs);
@@ -79,8 +79,8 @@ public:
 
 /// Throw a range_error if i is out of range of a[0..sz)
 template<class T>
-void CheckedPtr<T>::range_check(int i) const {
-	if (i < 0 || i >= sz) {
+void CheckedPtr<T>::range_check(ptrdiff_t i) const {
+	if (i < 0 || static_cast<size_t>(i) >= sz) {
 		std::ostringstream oss;
 		oss << "CheckedPtr<T>::range_check(" << i << ") failed" << std::ends;
 		throw std::range_error(oss.str());
@@ -101,7 +101,7 @@ CheckedPtr<T>::CheckedPtr(T* pos) : p{pos}, a{pos}, sz{1} {}
 
 /// Construct an CheckedPtr<T> bound to an attary of n elements, with initial position pos
 template<class T>
-CheckedPtr<T>::CheckedPtr(T* pos, const T* array, int n) : p{pos}, a{array}, sz{n} {}
+CheckedPtr<T>::CheckedPtr(T* pos, const T* array, size_t n) : p{pos}, a{array}, sz{n} {}
 
 /// Construct an CheckedPtr<T> bound to the same array as rhs
 template<class T>

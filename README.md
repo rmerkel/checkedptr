@@ -14,8 +14,12 @@ position in the array. Any attempt to dereference a CheckedPtr<T> results in a
 range-check. If the current position is out of range, and range_error
 exception is thrown.
 
-From The C++ Programming Language, 2nd Edition, 7.10, 7.14[19 and 9.9[2]
+From The C++ Programming Language, 
+- 2nd Edition; 7.10, 7.14[19 and 9.9[2]
+- 3rd Edition; 11.10, 11.14[19], 19.3, 13.6.3
+- 4th Edition; 19.2.4, 27.2.2
 
 # Author
 
-Randy Merkel, Slowly but Surly Software.
+Randy Merkel, 
+Slowly but Surly Software.
