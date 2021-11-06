@@ -29,6 +29,7 @@
  *
  * @bug	Lacks a unsigned index operator.
  * @bug Default copy construction and assignement should work fine.
+ * @bug Tests are unfinished
  ************************************************************************************************/
 template<class T> class CheckedPtr {
 	T*	_pos;									///< Current position in a[]
