@@ -36,9 +36,6 @@ void X::print() const {	cout << "X::n: == " << n << "X::i: == " << i << '\n';	}
  ************************************************************************************************/
 template<class P, class T>
 class Test {
-protected:
-	T a[10];
-
 public:
 	virtual bool operator()() = 0;
 };
@@ -55,7 +52,7 @@ public:
 template<class P, class T>
 bool test1<P, T>::operator()() {
 	T x{};
-	T a[10];								// why is this necessary?
+	T a[10];
 	P p(a, a, 10);
 
 	try {

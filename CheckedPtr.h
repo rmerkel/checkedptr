@@ -73,8 +73,11 @@ public:
 	T&				operator[](int i);			///< p[i]
 	const T&		operator[](int i) const;	///< p[i]
 
-	friend ptrdiff_t operator-(	const CheckedPtr<T>&	lhs,
-								const CheckedPtr<T>&	rhs);
+	friend ptrdiff_t operator-(	const CheckedPtr<T>& lhs,
+								const CheckedPtr<T>& rhs) {
+		return lhs._pos - rhs._pos;
+	}
+		
 };
 
 /************************************************************************************************
@@ -230,6 +233,7 @@ const T& CheckedPtr<T>::operator[](int i) const {
 	return _begin[i];
 }
 
+#if 0
 /************************************************************************************************
  * friends
  ************************************************************************************************/
@@ -238,6 +242,7 @@ template<class T>
 ptrdiff_t operator-(const CheckedPtr<T>& lhs, const CheckedPtr<T>& rhs) {
 	return lhs._pos - rhs._pos;
 }
+#endif
 
 #endif
 
