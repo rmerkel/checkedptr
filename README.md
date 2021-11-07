@@ -4,7 +4,9 @@
 
     template<class T> class CheckedPtr<T>;
     X a[N];                                   // Array of X's to bind to
-    CheckedPtr<T> p(a, a, N);                 // Bind to a's first element
+    CheckedPtr<T> p(a, a, a+N);               // Bind to a, position at 1st element
+	*p++ = v;
+	p[i] = v;
 
 # Description
 

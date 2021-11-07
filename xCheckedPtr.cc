@@ -1,9 +1,10 @@
 /********************************************************************************************//**
  * @file xCheckedPtr.cc
  *
- * Test CheckedPtr<T>
+ * CheckedPtr<T> tests.
  *
- * Formating: 4 column per hard tab.
+ * ### Formating ###
+ * 4 column per hard tab.
  *
  * @author Randy Merkel, Slowly but Surly Software.
  * @copyright  (c) 2021 Slowly but Surly Software. All rights reserved.
@@ -30,6 +31,12 @@ public:
 unsigned X::n = 0;
 
 void X::print() const {	cout << "X::n: == " << n << "X::i: == " << i << '\n';	}
+
+/********************************************************************************************//**
+ * Expliciatly instantiations
+ ************************************************************************************************/
+template class CheckedPtr<int>;
+template class CheckedPtr<X>;
 
 /********************************************************************************************//**
  * CheckedPtr<T> test interface

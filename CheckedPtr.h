@@ -1,10 +1,15 @@
 /********************************************************************************************//**
  * @file CheckedPtr.h
  *
- * Class tempalte CheckedPtr, from The C++ Programming Language, 2nd Edition, Section 7.10,
- * 7.14 [19] and 9.9 [2]
+ * Class tempalte CheckedPtr, from The C++ Programming Language, 2nd - 3rd Editions.
  *
- * Formating: 4 column per hard tab.
+ * ### Synopsys ###
+ * template<class T> class CheckedPtr<T>;
+ * X a[N];                                   // Array of X's to bind to
+ * CheckedPtr<T> p(a, a, a+N);               // Bind to a, position at 1st element
+ *
+ * ### Formating ###
+ * 4 column per hard tab.
  *
  * @author Randy Merkel, Slowly but Surly Software.
  * @copyright  (c) 2021 Slowly but Surly Software. All rights reserved.
@@ -28,7 +33,6 @@
  *
  * @note	Uses default copy constructor and assignment operators.
  *
- * @bug	Lacks a unsigned index operator.
  * @bug Tests are unfinished
  ************************************************************************************************/
 template<class T> class CheckedPtr {
@@ -71,8 +75,10 @@ public:
 	T&				operator[](int i);			///< p[i]
 	const T&		operator[](int i) const;	///< p[i]
 
-	friend ptrdiff_t operator-(	const CheckedPtr<T>& lhs,
-								const CheckedPtr<T>& rhs) {
+	T&				operator[](unsigned i);		///< p[i]
+	const T&		operator[](unsigned i) const; ///< p[i]
+
+	friend ptrdiff_t operator-(	const CheckedPtr<T>& lhs, const CheckedPtr<T>& rhs) {
 		return lhs._pos - rhs._pos;
 	}
 		
@@ -101,18 +107,19 @@ void CheckedPtr<T>::range_check(const T* pos) const {
  * publics
  ************************************************************************************************/
 
-/// Construct an unbound CheckedPtr<T>
+/// Default constructor - constructs an unbound CheckedPtr<T>
 template<class T>
 CheckedPtr<T>::CheckedPtr() : _pos{0},	_begin{0}, _end{0} {}
 
-/// Construct anCheckedPtr<T> bound to an array with a single element
+/// Construct an CheckedPtr<T> bound to an array with a single element
 template<class T>
 CheckedPtr<T>::CheckedPtr(T* position) : _pos{position}, _begin{position}, _end{position + 1} {}
 
-/// Construct an CheckedPtr<T> bound to an attary of n elements, with initial position pos
+/// Construct an CheckedPtr<T> bound to an attary of n elements, with initial position @ pos
 template<class T>
 CheckedPtr<T>::CheckedPtr(T* position, T* array, size_t n) : _pos{position}, _begin{array}, _end{array+n} {}
 
+/// Construct a CheckedPtr<T> bound to array of a span of end - begin
 template<class T>
 CheckedPtr<T>::CheckedPtr(T* position, T* begin, T* end) : _pos{position}, _begin{begin}, _end{end} {}
 
@@ -214,6 +221,18 @@ T& CheckedPtr<T>::operator[](int i) {
 
 template<class T>
 const T& CheckedPtr<T>::operator[](int i) const {
+	range_check(&_begin[i]);
+	return _begin[i];
+}
+
+template<class T>
+T& CheckedPtr<T>::operator[](unsigned i) {
+	range_check(&_begin[i]);
+	return _begin[i];
+}
+
+template<class T>
+const T& CheckedPtr<T>::operator[](unsigned i) const {
 	range_check(&_begin[i]);
 	return _begin[i];
 }
