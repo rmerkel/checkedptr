@@ -32,7 +32,7 @@ unsigned X::n = 0;
 void X::print() const {	cout << "X::n: == " << n << "X::i: == " << i << '\n';	}
 
 /********************************************************************************************//**
- * CheckedPtr<T> test base
+ * CheckedPtr<T> test interface
  ************************************************************************************************/
 template<class P, class T>
 class Test {
@@ -41,7 +41,7 @@ public:
 };
 
 /********************************************************************************************//**
- * Test CheckedPtr<T>::operator --,+= and *
+ * Test #1 - test CheckedPtr<T>::operator --,+= and *
  ************************************************************************************************/
 template<class P, class T>
 class test1 : public Test<P, T> {
@@ -51,9 +51,12 @@ public:
 
 template<class P, class T>
 bool test1<P, T>::operator()() {
+	constexpr int	size = 10;
+
 	T x{};
-	T a[10];
-	P p(a, a, 10);
+	T a[size];
+	P p(a, a, size);
+	unsigned expected = 0;
 
 	try {
 		--p;								// underrun test
@@ -61,25 +64,27 @@ bool test1<P, T>::operator()() {
 			*p = x;
 		} catch (range_error& r) {
 			cout << "Expected range_error: " << r.what() << '\n';
+			++expected;
 		}
 
 		++p;
 		*p = x;
 
-		for (int i = 0; i < 10; ++i)		// underrun test
+		for (int i = 0; i < size; ++i)		// underrun test
 			++p;
 		try {
 			*p = x;
 		} catch (range_error& r) {
 			cout << "Expected range_error: " << r.what() << '\n';
+			++expected;
 		}
 		--p;
 		*p;
 
-		for (P p(a, a, 10); p != &a[10]; ++p)
+		for (P p(a, a, size); p != &a[size]; ++p)
 			;								// pre-increment test
 
-		for (P p(a, a, 10); p != &a[10]; p++)
+		for (P p(a, a, size); p != &a[size]; p++)
 			;								// post-increment test
 
 	} catch (range_error& r) {
@@ -87,14 +92,82 @@ bool test1<P, T>::operator()() {
 		return false;
 	}
 
-	return true;
+	return expected == 2;
+}
+
+/********************************************************************************************//**
+ * Test #2 - test CheckedPtr<T>::operator[] and *
+ ************************************************************************************************/
+template<class P, class T>
+class test2 : public Test<P, T> {
+public:
+	bool operator()();
+};
+
+template<class P, class T>
+bool test2<P, T>::operator()() {
+	constexpr	int size = 100;
+	T x{};
+	T a[size];
+	P p(a, a, size);
+	unsigned expected = 0;
+
+	try {
+		// non-const tests
+		P p(a, a, size);
+		int i = 0;							// index into p
+		p[i--];								// underrun test
+		try { 
+			p[i] = x;
+		} catch (range_error& r) {
+			cout << "Expected range_error: " << r.what() << '\n';
+			++expected;
+		}
+		p[++i] = x;
+
+		i = size;							// overrun test
+		try {
+			p[i] = x;
+		} catch (range_error& r) {
+			cout << "Expected range_error: " << r.what() << '\n';
+			++expected;
+		}
+		p[i = size-1] = x;
+
+		// const tests
+
+		const P p1(a - 1, a, size);
+		try {								// underrun test
+			x = *p1;
+		} catch (range_error& r) {
+			cout << "Expected range_error: " << r.what() << '\n';
+			++expected;
+		}
+
+		const P p2(a, a, size);
+		x = *p2;
+
+		const P p3(a + size, a, size);
+		try {								// underrun test
+			x = *p3;
+		} catch (range_error& r) {
+			cout << "Expected range_error: " << r.what() << '\n';
+			++expected;
+		}
+
+	} catch (range_error& r) {
+		cerr << "Unexpected range_error: " << r.what() << "!\n";
+		return false;
+	}
+
+	return expected == 4;
 }
 
 /********************************************************************************************//**
  * run one test on one type
  ************************************************************************************************/
 template<class P, class T>
-bool do_one_test(const char* type, int testn, Test<P, T>& func) {
+static bool do_one_test(const char* type, int testn, Test<P, T>& func) {
 	cout << "CheckedPtr<T>: <" << type << "> test #" << testn << "..." << '\n';
 	bool okay = func();
 	cout << '<' << type << "> Test #" << testn << (okay? " Passed " : " Failed!") << '\n';
@@ -106,11 +179,21 @@ bool do_one_test(const char* type, int testn, Test<P, T>& func) {
 /********************************************************************************************//**
  * do test # n for both int's and X's
  ************************************************************************************************/
-static bool do_test_1() {
+static bool do_test1() {
 	test1<CheckedPtr<int>, int>	int_test;
 	test1<CheckedPtr<X>, X>		X_test;
 
 	return do_one_test("int", 1, int_test) && do_one_test("X", 1, X_test);
+}
+
+/********************************************************************************************//**
+ * do test # n for both int's and X's
+ ************************************************************************************************/
+static bool do_test2() {
+	test2<CheckedPtr<int>, int>	int_test;
+	test2<CheckedPtr<X>, X>		X_test;
+
+	return do_one_test("int", 2, int_test) && do_one_test("X", 2, X_test);
 }
 
 /********************************************************************************************//**
@@ -119,7 +202,8 @@ static bool do_test_1() {
 int main() {
 	bool okay = true;
 
-	if (!do_test_1()) okay = false;
+	if (!do_test1())	okay = false;
+	if (!do_test2())	okay = false;
 
 	if (okay)
 		cout << "All tests passed!" << endl;
