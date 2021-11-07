@@ -13,7 +13,6 @@
 #ifndef	CHECKEDPTR_H
 #define	CHECKEDPTR_H
 
-#include <cassert>
 #include <cstddef>
 #include <sstream>
 
@@ -62,6 +61,9 @@ public:
 	bool 			operator==(const CheckedPtr<T>& rhs) const;
 	bool			operator==(const T* rhs) const;
 
+	bool 			operator!=(const CheckedPtr<T>& rhs) const;
+	bool			operator!=(const T* rhs) const;
+
 	T&				operator*();				///< *p
 	const T&		operator*() const;			///< *p
 
@@ -85,11 +87,11 @@ void CheckedPtr<T>::range_check(const T* pos) const {
 	std::ostringstream oss;
 
 	if (pos == 0 || _begin == 0 || _end == 0) {
-		oss << "CheckedPtr<T>::range_check(" << pos << ") failed: unbound" << std::ends;
+		oss << "CheckedPtr<T>::range_check(" << pos - _begin << ") failed: unbound";
 		throw std::range_error(oss.str());
 
 	} else if (pos < _begin || pos >= _end) {
-		oss << "CheckedPtr<T>::range_check(" << pos << ") failed: out of bounds" << std::ends;
+		oss  << "CheckedPtr<T>::range_check(" << pos - _begin << ") failed: out of bounds";
 		throw std::range_error(oss.str());
 	}
 }
@@ -180,6 +182,16 @@ bool CheckedPtr<T>::operator==(const CheckedPtr<T>& rhs) const {
 template<class T>
 bool CheckedPtr<T>::operator==(const T* rhs) const {
 	return _pos == rhs;
+}
+
+template<class T>
+bool CheckedPtr<T>::operator!=(const CheckedPtr<T>& rhs) const {
+	return _pos != rhs._pos;
+}
+
+template<class T>
+bool CheckedPtr<T>::operator!=(const T* rhs) const {
+	return _pos != rhs;
 }
 
 template<class T>

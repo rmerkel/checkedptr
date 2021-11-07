@@ -29,21 +29,36 @@ template<class P, class T>
 class test1 : public test<P, T> {
 public:
 	bool operator()() {
+		T x{};
 		T a[10];
-		static T x;
+		P p(a, a, 10);
 
 		try {
-			P p(a, a, 10);
 			--p;								// underrun test
 			try {
 				*p = x;
 			} catch (range_error& r) {
 				cout << "Expected range_error: " << r.what() << '\n';
 			}
+
 			++p;
 			*p = x;
 
-			// ...
+			for (int i = 0; i < 10; ++i)		// underrun test
+				++p;
+			try {
+				*p = x;
+			} catch (range_error& r) {
+				cout << "Expected range_error: " << r.what() << '\n';
+			}
+			--p;
+			*p;
+
+			for (P p(a, a, 10); p != &a[10]; ++p)
+				;								// pre-increment test
+
+			for (P p(a, a, 10); p != &a[10]; p++)
+				;								// post-increment test
 
 		} catch (range_error& r) {
 			cerr << "Unexpected rnage_error: " << r.what() << endl;
