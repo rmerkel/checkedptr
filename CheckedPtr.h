@@ -26,8 +26,9 @@
  *
  * @note	Attempts to derefernce a unbound CheckedPtr<T> will result in a throw range_error.
  *
+ * @note	Uses default copy constructor and assignment operators.
+ *
  * @bug	Lacks a unsigned index operator.
- * @bug Default copy construction and assignement should work fine.
  * @bug Tests are unfinished
  ************************************************************************************************/
 template<class T> class CheckedPtr {
@@ -42,9 +43,6 @@ public:
 	CheckedPtr(T* position);
 	CheckedPtr(T* position, T* array, size_t n);
 	CheckedPtr(T* position, T* begin, T* end);
-	CheckedPtr(const CheckedPtr<T>& rhs);
-
-	CheckedPtr<T>&	operator=(const CheckedPtr<T>& rhs);
 
 	CheckedPtr<T>&	operator++();				///< ++p
 	CheckedPtr<T>	operator++(int);			///< p++
@@ -117,19 +115,6 @@ CheckedPtr<T>::CheckedPtr(T* position, T* array, size_t n) : _pos{position}, _be
 
 template<class T>
 CheckedPtr<T>::CheckedPtr(T* position, T* begin, T* end) : _pos{position}, _begin{begin}, _end{end} {}
-
-/// Construct an CheckedPtr<T> bound to the same array as rhs
-template<class T>
-CheckedPtr<T>::CheckedPtr(const CheckedPtr<T>& rhs) : _pos{rhs._pos}, _begin{rhs._begin}, _end{rhs._end} {}
-
-template<class T>
-CheckedPtr<T>& CheckedPtr<T>::operator=(const CheckedPtr<T>& rhs) {
-	_pos = rhs._pos;
-	_begin = rhs._begin;
-	_end = rhs._end;
-
-	return *this;
-}
 
 template<class T>
 CheckedPtr<T>&	CheckedPtr<T>::operator++() {
@@ -232,17 +217,6 @@ const T& CheckedPtr<T>::operator[](int i) const {
 	range_check(&_begin[i]);
 	return _begin[i];
 }
-
-#if 0
-/************************************************************************************************
- * friends
- ************************************************************************************************/
-
-template<class T>
-ptrdiff_t operator-(const CheckedPtr<T>& lhs, const CheckedPtr<T>& rhs) {
-	return lhs._pos - rhs._pos;
-}
-#endif
 
 #endif
 
