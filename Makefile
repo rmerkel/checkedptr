@@ -51,7 +51,7 @@ LSTINGS = $(wildcard *p.lst)
 $(OBJDIR)/%.o: %.cc
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
-.PHONY:	all clean cleanall $(DOCDIR) help pr test
+.PHONY:	all clean cleanall $(DOCDIR) help test
 
 ################################################################################
 #	The default target...
@@ -108,26 +108,17 @@ help:
 	@echo "DEBUG=1, (default), builds a debug image and 0 builds a release."
 	@echo ""
 	@echo "Targets:"
-	@echo "    all     - to build the compilier  and generate documentation (default)."
-	@echo "    check   - to run static checker."
-	@echo "    clean   - to delete intermediates."
-	@echo "    cleanll - to delete all targets and intermediates."
-	@echo "    docs    - to generate documentation."
-	@echo "    help    - prints this message."
-	@echo "    p       - to build the compiler."
-	@echo "    pr      - prepare source for printing"
-	@echo "    test    - to bring calc upto date and run tests."
+	@echo "  all     	- to build the compilier  and generate documentation (default)."
+	@echo "  check   	- to run static checker."
+	@echo "  clean   	- to delete intermediates."
+	@echo "  cleanll 	- to delete all targets and intermediates."
+	@echo "  docs    	- to generate documentation."
+	@echo "  help    	- prints this message."
+	@echo "  xCheckedPtr- to build the test application."
+	@echo "  test    	- to bring calc upto date and run tests."
 	@echo ""
 
 ################################################################################
-# Print
-################################################################################
-
-pr:
-	@pr --expand-tabs=4 $(ALLSRCS) Makefile $(DOCS)
-
-################################################################################
-		assert(false);
 # Bring up to date and run some tests...
 ################################################################################
 
