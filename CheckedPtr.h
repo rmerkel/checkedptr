@@ -24,10 +24,16 @@
 /********************************************************************************************//**
  * Range Checked Pointer
  *
- * Run-time range checked pointer for a T. Once bound to an array, a CheckedPtr<T> maintians a
- * position with in the array, and the upper and lower bounds of the array. Each attempt to
- * dereference a CheckedPtr<T> results in a range-check of the current position, throwing a
- * range_error exception if the check fails.
+ * Run-time, range-checked pointer class template. Once bound to an array, a CheckedPtr<T>
+ * maintains a position with in the array, and the upper and lower bounds of the array. Each
+ * attempt to deference a CheckedPtr<T> results in a range-check of the current position,
+ * throwing a range_error exception if the check fails.
+ *
+ * The pointer maybe incremented or decremented out of bounds, allowing one past the end
+ * checks, mirroring C/C++ pointer semantics.
+ * 
+ * The default constructor results in unbound pointers, which will always throw a range_error if
+ * deferenced.
  *
  * @note	Attempts to derefernce a unbound CheckedPtr<T> will result in a throw range_error.
  *
@@ -40,13 +46,16 @@ template<class T> class CheckedPtr {
 	T*	_begin;									///< Beginging of array bound to
 	T*	_end;									///< End (one pasted last element), of the array
 
-	void range_check(const T* pos) const;
+protected:
+	void range_check(const T* pos) const;		///< Throw a range_error if pos is out of range
 
 public:
 	CheckedPtr();
 	CheckedPtr(T* position);
 	CheckedPtr(T* position, T* array, size_t n);
 	CheckedPtr(T* position, T* begin, T* end);
+
+	virtual ~CheckedPtr()						{}
 
 	CheckedPtr<T>&	operator++();				///< ++p
 	CheckedPtr<T>	operator++(int);			///< p++
@@ -72,11 +81,8 @@ public:
 	T*				operator->();				///< p->member
 	const T&		operator->() const;			///< p->member
 
-	T&				operator[](int i);			///< p[i]
-	const T&		operator[](int i) const;	///< p[i]
-
-	T&				operator[](unsigned i);		///< p[i]
-	const T&		operator[](unsigned i) const; ///< p[i]
+	T&				operator[](size_t i);		///< p[i]
+	const T&		operator[](size_t i) const; ///< p[i]
 
 	friend ptrdiff_t operator-(	const CheckedPtr<T>& lhs, const CheckedPtr<T>& rhs) {
 		return lhs._pos - rhs._pos;
@@ -93,12 +99,8 @@ template<class T>
 void CheckedPtr<T>::range_check(const T* pos) const {
 	std::ostringstream oss;
 
-	if (pos == 0 || _begin == 0 || _end == 0) {
-		oss << "CheckedPtr<T>::range_check(" << pos - _begin << ") failed: unbound";
-		throw std::range_error(oss.str());
-
-	} else if (pos < _begin || pos >= _end) {
-		oss  << "CheckedPtr<T>::range_check(" << pos - _begin << ") failed: out of bounds";
+	if (pos == 0 || pos < _begin || pos >= _end) {
+		oss  << "CheckedPtr<T>::range_check(" << pos - _begin << ") failed: index is out of bounds";
 		throw std::range_error(oss.str());
 	}
 }
@@ -214,27 +216,17 @@ const T& CheckedPtr<T>::operator->() const {
 }
 
 template<class T>
-T& CheckedPtr<T>::operator[](int i) {
-	range_check(&_begin[i]);
-	return _begin[i];
+T& CheckedPtr<T>::operator[](size_t i) {
+	T* p = _begin + i;
+	range_check(p);
+	return *p;
 }
 
 template<class T>
-const T& CheckedPtr<T>::operator[](int i) const {
-	range_check(&_begin[i]);
-	return _begin[i];
-}
-
-template<class T>
-T& CheckedPtr<T>::operator[](unsigned i) {
-	range_check(&_begin[i]);
-	return _begin[i];
-}
-
-template<class T>
-const T& CheckedPtr<T>::operator[](unsigned i) const {
-	range_check(&_begin[i]);
-	return _begin[i];
+const T& CheckedPtr<T>::operator[](size_t i) const {
+	const T* p = _begin + i;
+	range_check(p);
+	return *p;
 }
 
 #endif
