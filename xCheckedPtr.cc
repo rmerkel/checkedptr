@@ -4,7 +4,7 @@
  * CheckedPtr<T> tests.
  *
  * ### Formating ###
- * 4 column per hard tab.
+ * 4 columns per hard tab.
  *
  * @author Randy Merkel, Slowly but Surly Software.
  * @copyright  (c) 2021 Slowly but Surly Software. All rights reserved.
@@ -246,7 +246,82 @@ static bool do_test3() {
 	test3<CheckedPtr<int>, int>	int_test;
 	test3<CheckedPtr<X>, X>		X_test;
 
-	return do_one_test("int", 2, int_test) && do_one_test("X", 2, X_test);
+	return do_one_test("int", 3, int_test) && do_one_test("X", 3, X_test);
+}
+
+/********************************************************************************************//**
+ * Test #4 - test CheckedPtr<T>::operator-, + and *
+ ************************************************************************************************/
+template<class P, class T>
+class test4 : public Test<P, T> {
+public:
+	bool operator()();
+};
+
+template<class P, class T>
+bool test4<P, T>::operator()() {
+	unsigned expected = 0;
+	T x{};
+
+	try {
+		P p(this->a, this->a, this->size);
+
+		p = p - 1;							// underrun test
+		try {
+			*p = x;
+
+		} catch (range_error& r) {
+			cout << "Expected range_error: " << r.what() << '\n';
+			++expected;
+		}
+
+		p = p + 1;
+		*p = x;
+
+		p = p + this->size;					// overrun test
+		try {
+			*p = x;
+		} catch (range_error& r) {
+			cout << "Expected range_error: " << r.what() << '\n';
+			++expected;
+		}
+
+		p -= 1;
+		*p = x;
+
+											// const's tests
+		const P p1(this->a, this->a, this->size);
+		const P p2 = p1 - 1;
+		try {								// underrun test
+			x = *p2;
+		} catch (range_error& r) {
+			cout << "Expected range_error: " << r.what() << '\n';
+			++expected;
+		}
+
+		x = *p1;
+
+		const P p3 = p1 + this->size;		// overrun test
+		try {
+			x = *p3;
+		} catch (range_error& r) {
+			cout << "Expected range_error: " << r.what() << '\n';
+			++expected;
+		}
+
+	} catch (range_error& r) {
+		cerr << "Unexpected range_error: " << r.what() << "!\n";
+		return false;
+	}
+
+	return expected == 4;
+}
+
+static bool do_test4() {
+	test4<CheckedPtr<int>, int>	int_test;
+	test4<CheckedPtr<X>, X>		X_test;
+
+	return do_one_test("int", 4, int_test) && do_one_test("X", 4, X_test);
 }
 
 /********************************************************************************************//**
@@ -258,6 +333,7 @@ int main() {
 	if (!do_test1())	okay = false;
 	if (!do_test2())	okay = false;
 	if (!do_test3())	okay = false;
+	if (!do_test4())	okay = false;
 
 	if (okay)
 		cout << "All tests passed!" << endl;
