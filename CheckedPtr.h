@@ -55,7 +55,7 @@ public:
 	CheckedPtr(T* position, T* array, size_t n);
 	CheckedPtr(T* position, T* begin, T* end);
 
-	virtual ~CheckedPtr()						{}
+	virtual			~CheckedPtr() {}
 
 	CheckedPtr<T>&	operator++();				///< ++p
 	CheckedPtr<T>	operator++(int);			///< p++
@@ -84,10 +84,8 @@ public:
 	T&				operator[](size_t i);		///< p[i]
 	const T&		operator[](size_t i) const; ///< p[i]
 
-	friend ptrdiff_t operator-(	const CheckedPtr<T>& lhs, const CheckedPtr<T>& rhs) {
-		return lhs._pos - rhs._pos;
-	}
-		
+	friend ptrdiff_t operator-(const CheckedPtr<T>& lhs, const CheckedPtr<T>& rhs)
+		{	return lhs._pos - rhs._pos;	}
 };
 
 /************************************************************************************************
