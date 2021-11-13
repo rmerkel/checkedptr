@@ -1,4 +1,4 @@
-# CheckedPtr<T> A Runtime checked pointer for an array of T's
+# CheckedPtr<T> A Runtime checked pointer
 
 # Synopsis
 
@@ -6,15 +6,19 @@
     X a[N];                             // Array of X's to bind to
     CheckedPtr<T> p(a, a, a+N);         // Bind to a, position at 1st element
     *p++ = v;
-    p[i] = v;
+    v = p[i];
 
 # Description
 
-Run-time range checked pointer class template. Once bound to an array, a 
-CheckedPtr<T> maintians a position with in the array, and the upper and lower 
-bounds of the array. Each attempt to dereference a CheckedPtr<T> results in a
-range-check of the current position, throwing a range_error exception if the 
-check fails.
+A Run-time, range checked pointer, class template for objects of type T. Once
+bound to an object, or array of objects, CheckedPtr<T>'s maintains the upper
+and lower bounds of of the object(s), as well as a current position. Each
+attempt to dereference a CheckedPtr<T> is range-checked, throwing a range_error
+exception if the reference is out of bounds.
+
+The default constructor results in a unbound pointer that will throw
+range_errors on every dereference. Unbound pointers can be bound to an object,
+or arrary of objects, via assignment.
 
 From The C++ Programming Language, 
 - 2nd Edition; 7.10, 7.14[19 and 9.9[2]
@@ -29,5 +33,4 @@ from listings and tested with GNU C++ 9.3.0 and CLang++ 10.0.0.
 
 # Author
 
-Randy Merkel, 
-Slowly but Surly Software.
+Randy Merkel, Slowly but Surly Software.

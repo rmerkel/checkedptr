@@ -33,10 +33,10 @@ unsigned X::n = 0;
 void X::print() const {	cout << "X::n: == " << n << "X::i: == " << i << '\n';	}
 
 /********************************************************************************************//**
- * Explicit instantiations
+ * Test pointer types
  ************************************************************************************************/
-template class CheckedPtr<int>;
-template class CheckedPtr<X>;
+typedef	CheckedPtr<int>	CheckedIntPtr;
+typedef CheckedPtr<X>	CheckedXPtr;
 
 /********************************************************************************************//**
  * CheckedPtr<T> test interface
@@ -120,8 +120,8 @@ bool test1<P, T>::operator()() {
 }
 
 static bool do_test1() {
-	test1<CheckedPtr<int>, int>	int_test;
-	test1<CheckedPtr<X>, X>		X_test;
+	test1<CheckedIntPtr, int>	int_test;
+	test1<CheckedXPtr, X>		X_test;
 
 	return do_one_test("int", 1, int_test) && do_one_test("X", 1, X_test);
 }
@@ -195,8 +195,8 @@ bool test2<P, T>::operator()() {
 }
 
 static bool do_test2() {
-	test2<CheckedPtr<int>, int>	int_test;
-	test2<CheckedPtr<X>, X>		X_test;
+	test2<CheckedIntPtr, int>	int_test;
+	test2<CheckedXPtr, X>		X_test;
 
 	return do_one_test("int", 2, int_test) && do_one_test("X", 2, X_test);
 }
@@ -249,8 +249,8 @@ bool test3<P, T>::operator()() {
 }
 
 static bool do_test3() {
-	test3<CheckedPtr<int>, int>	int_test;
-	test3<CheckedPtr<X>, X>		X_test;
+	test3<CheckedIntPtr, int>	int_test;
+	test3<CheckedXPtr, X>		X_test;
 
 	return do_one_test("int", 3, int_test) && do_one_test("X", 3, X_test);
 }
@@ -326,8 +326,8 @@ bool test4<P, T>::operator()() {
 }
 
 static bool do_test4() {
-	test4<CheckedPtr<int>, int>	int_test;
-	test4<CheckedPtr<X>, X>		X_test;
+	test4<CheckedIntPtr, int>	int_test;
+	test4<CheckedXPtr, X>		X_test;
 
 	return do_one_test("int", 4, int_test) && do_one_test("X", 4, X_test);
 }
@@ -381,8 +381,8 @@ bool test5<P, T>::operator()() {
 }
 
 static bool do_test5() {
-	test5<CheckedPtr<int>, int>	int_test;
-	test5<CheckedPtr<X>, X>		X_test;
+	test5<CheckedIntPtr, int>	int_test;
+	test5<CheckedXPtr, X>		X_test;
 
 	return do_one_test("int", 5, int_test) && do_one_test("X", 5, X_test);
 }
