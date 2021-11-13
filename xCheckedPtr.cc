@@ -75,8 +75,10 @@ public:
 
 template<class P, class T>
 bool test1<P, T>::operator()() {
+	constexpr size_t n = this->size;
+
 	T x{};
-	P p(this->a, this->a, this->size);
+	P p(this->a, this->a, n);
 	unsigned expected = 0;
 
 	try {
@@ -91,7 +93,7 @@ bool test1<P, T>::operator()() {
 		++p;
 		*p = x;
 											// underrun test
-		for (int i = 0; i < static_cast<int>(this->size); ++i)
+		for (int i = 0; i < static_cast<int>(n); ++i)
 			++p;
 
 		try {
@@ -103,10 +105,10 @@ bool test1<P, T>::operator()() {
 		--p;
 		*p;
 
-		for (P p(this->a, this->a, this->size); p != &this->a[this->size]; ++p)
+		for (P p(this->a, this->a, n); p != &this->a[n]; ++p)
 			;								// pre-increment test
 
-		for (P p(this->a, this->a, this->size); p != &this->a[this->size]; p++)
+		for (P p(this->a, this->a, n); p != &this->a[n]; p++)
 			;								// post-increment test
 
 	} catch (range_error& r) {
@@ -135,13 +137,15 @@ public:
 
 template<class P, class T>
 bool test2<P, T>::operator()() {
+	constexpr size_t n = this->size;
+
 	T x{};
-	P p(this->a, this->a, this->size);
+	P p(this->a, this->a, n);
 	unsigned expected = 0;
 
 	try {
 		// non-const tests
-		P p(this->a, this->a, this->size);
+		P p(this->a, this->a, n);
 		int i = 0;							// index into p
 		p[i--];								// underrun test
 		try { 
@@ -152,18 +156,18 @@ bool test2<P, T>::operator()() {
 		}
 		p[++i] = x;
 
-		i = this->size;					// overrun test
+		i = n;					// overrun test
 		try {
 			p[i] = x;
 		} catch (range_error& r) {
 			cout << "Expected range_error: " << r.what() << '\n';
 			++expected;
 		}
-		p[i = this->size-1] = x;
+		p[i = n-1] = x;
 
 		// const tests
 
-		const P p1(this->a - 1, this->a, this->size);
+		const P p1(this->a - 1, this->a, n);
 		try {								// underrun test
 			x = *p1;
 		} catch (range_error& r) {
@@ -171,10 +175,10 @@ bool test2<P, T>::operator()() {
 			++expected;
 		}
 
-		const P p2(this->a, this->a, this->size);
+		const P p2(this->a, this->a, n);
 		x = *p2;
 
-		const P p3(this->a + this->size, this->a, this->size);
+		const P p3(this->a + n, this->a, n);
 		try {								// underrun test
 			x = *p3;
 		} catch (range_error& r) {
@@ -208,11 +212,13 @@ public:
 
 template<class P, class T>
 bool test3<P, T>::operator()() {
+	constexpr size_t n = this->size;
+
 	unsigned expected = 0;
 	T x{};
 
 	try {
-		P p(this->a, this->a, this->size);
+		P p(this->a, this->a, n);
 		p -= 1;								// underrun test
 		try {
 			*p = x;
@@ -224,7 +230,7 @@ bool test3<P, T>::operator()() {
 		p += 1;
 		*p = x;
 
-		p+= this->size;						// overrun test
+		p+= n;						// overrun test
 		try {
 			*p = x;
 		} catch (range_error& r) {
@@ -260,11 +266,13 @@ public:
 
 template<class P, class T>
 bool test4<P, T>::operator()() {
+	constexpr size_t n = this->size;
+
 	unsigned expected = 0;
 	T x{};
 
 	try {
-		P p(this->a, this->a, this->size);
+		P p(this->a, this->a, n);
 
 		p = p - 1;							// underrun test
 		try {
@@ -278,7 +286,7 @@ bool test4<P, T>::operator()() {
 		p = p + 1;
 		*p = x;
 
-		p = p + this->size;					// overrun test
+		p = p + n;					// overrun test
 		try {
 			*p = x;
 		} catch (range_error& r) {
@@ -290,7 +298,7 @@ bool test4<P, T>::operator()() {
 		*p = x;
 
 											// const's tests
-		const P p1(this->a, this->a, this->size);
+		const P p1(this->a, this->a, n);
 		const P p2 = p1 - 1;
 		try {								// underrun test
 			x = *p2;
@@ -301,7 +309,7 @@ bool test4<P, T>::operator()() {
 
 		x = *p1;
 
-		const P p3 = p1 + this->size;		// overrun test
+		const P p3 = p1 + n;		// overrun test
 		try {
 			x = *p3;
 		} catch (range_error& r) {
@@ -325,17 +333,72 @@ static bool do_test4() {
 }
 
 /********************************************************************************************//**
+ * Test #5 - test CheckedPtr<T>::operator-, == and !=
+ ************************************************************************************************/
+template<class P, class T>
+class test5 : public Test<P, T> {
+public:
+	bool operator()();
+};
+
+template<class P, class T>
+bool test5<P, T>::operator()() {
+	constexpr size_t n = this->size;
+
+	try {								// Non-const tests
+		P p1(this->a, this->a, n);
+		P p2(&this->a[n]);
+
+		if (p2 - p1 != n)				return false;
+		else if (p2 - this->a != n)		return false;
+		else if (&this->a[n] - p1 != n)	return false;
+		else if (p1 == p2) 				return false;
+
+		p1 += n;
+
+		if (p1 != p2) 					return false;
+
+		const P p3(this->a, this->a, n);
+		const P p4(&this->a[n]);
+
+		if (p4 - p3 != 10) 				return false;
+		else if (p4 - this->a != n) 	return false;
+		else if (&this->a[n] - p3 != n) return false;
+		else if (p3 == p4) 				return false;
+		else if (p3 == &this->a[n]) 	return false;
+		else if (p3 != this->a) 		return false;
+
+		const P p5 = p3 + n;
+
+		if (p5 != p4) 					return false;
+
+	} catch (range_error& r) {
+		cerr << "Unexpected range_error: " << r.what() << "!\n";
+		return false;
+	}
+
+	return true;
+}
+
+static bool do_test5() {
+	test5<CheckedPtr<int>, int>	int_test;
+	test5<CheckedPtr<X>, X>		X_test;
+
+	return do_one_test("int", 5, int_test) && do_one_test("X", 5, X_test);
+}
+
+/********************************************************************************************//**
  * exercise and test CheckedPtr<T>
  ************************************************************************************************/
 int main() {
 	bool okay = true;
 
-	if (!do_test1())	okay = false;
-	if (!do_test2())	okay = false;
-	if (!do_test3())	okay = false;
-	if (!do_test4())	okay = false;
-
-	if (okay)
+	if 		(!do_test1())	okay = false;
+	else if (!do_test2())	okay = false;
+	else if (!do_test3())	okay = false;
+	else if (!do_test4())	okay = false;
+	else if (!do_test5())	okay = false;
+	else
 		cout << "All tests passed!" << endl;
 
 	return okay? EXIT_SUCCESS : EXIT_FAILURE;
