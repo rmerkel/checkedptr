@@ -1,5 +1,7 @@
 # CheckedPtr<T> A Runtime checked pointer
 
+https://github.com/rmerkel/checkedptr.git
+
 # Synopsis
 
     template<class T> class CheckedPtr<T>;
